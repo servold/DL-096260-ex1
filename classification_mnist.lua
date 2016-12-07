@@ -120,7 +120,10 @@ testLoss = torch.Tensor(epochs)
 trainError = torch.Tensor(epochs)
 testError = torch.Tensor(epochs)
 
-bestTestError = 1e100
+bestTrainLoss = torch.Tensor(epochs):fill(1e100)
+bestTrainError = torch.Tensor(epochs):fill(1e100)
+bestTestLoss = torch.Tensor(epochs):fill(1e100)
+bestTestError = torch.Tensor(epochs):fill(1e100)
 
 for i = 1, 100 do
 	print('------------ Trial ' ..i.. ' ------------')
@@ -141,9 +144,12 @@ for i = 1, 100 do
 		end
 	end
 
-	if bestTestError > testError[epochs] then
+	if bestTestError[epochs] > testError[epochs] then
 		bestModel = model:clone()
-		bestTestError = testError[epochs]
+		bestTrainLoss:copy(trainLoss)
+		bestTrainError:copy(trainError)
+		bestTestLoss:copy(testLoss)
+		bestTestError:copy(testError)
 
 		-- save the model
 		torch.save('mnist_model.net', bestModel)
@@ -151,11 +157,7 @@ for i = 1, 100 do
 
 end
 
-print('Best test accuracy: ' .. (1-bestTestError)*100)
-
--- load the model
--- model = torch.load('mnist_model.net')
-
+print('Best test accuracy: ' .. (1-bestTestError[epochs])*100)
 
 
 --- ### Insert a Dropout layer
@@ -166,17 +168,22 @@ model:insert(nn.Dropout(0.9):cuda(), 8)
 ]]
 
 
-
 -- ********************* Plots *********************
---[[
+
 require 'gnuplot'
 local range = torch.range(1, epochs)
-gnuplot.pngfigure('test.png')
-gnuplot.plot({'trainLoss',trainLoss},{'testLoss',testLoss})
+gnuplot.pngfigure('testLoss.png')
+gnuplot.plot({'trainLoss',bestTrainLoss},{'testLoss',bestTestLoss})
 gnuplot.xlabel('epochs')
 gnuplot.ylabel('Loss')
 gnuplot.plotflush()
-]]
+
+gnuplot.pngfigure('testError.png')
+gnuplot.plot({'trainError',bestTrainError},{'testError',bestTestError})
+gnuplot.xlabel('epochs')
+gnuplot.ylabel('Error')
+gnuplot.plotflush()
+
 
 
 

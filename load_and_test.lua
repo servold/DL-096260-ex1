@@ -15,8 +15,9 @@ function loadAndTest(testData, testLabels, modelPath)
 		testLabels = mnist.testdataset().label:add(1)
 		
 		-- normalize data
-		local mean = testData:mean()
-		local std = testData:std()
+		local trainData = mnist.traindataset().data:float()
+		local mean = trainData:mean()
+		local std = trainData:std()
 		testData:add(-mean):div(std)
 	end
 	
